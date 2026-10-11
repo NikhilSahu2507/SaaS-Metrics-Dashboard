@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Admin Dashboard</title>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --sidebar-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #777777;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        aside {
+            width: 260px;
+            background-color: var(--sidebar-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0 15px;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu li.active a {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        /* Main Content Styles */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Dashboard Body */
+        .dashboard-container {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Section View Management */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Stats Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .card-body h3 {
+            font-size: 1.75rem;
+            color: var(--text-main);
+        }
+
+        .card-icon {
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #ede9fe;
+            color: var(--primary-color);
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* Generic table style for user/finance views */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside>
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-chart-line"></i> SaaSMetrics
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" data-target="dashboard"><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li data-target="users"><a href="#"><i class="fa-solid fa-users"></i> Users</a></li>
+                <li data-target="finances"><a href="#"><i class="fa-solid fa-wallet"></i> Finances</a></li>
+                <li data-target="analytics"><a href="#"><i class="fa-solid fa-chart-pie"></i> Analytics</a></li>
+                <li data-target="settings"><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+            </ul>
+        </div>
+        <div style="padding: 20px;">
+            <a href="#" style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Section -->
+    <main>
+        <!-- Header -->
+        <header>
+            <div class="header-title">
+                <h1 id="page-title">Dashboard Overview</h1>
+            </div>
+            <div class="user-profile">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" alt="Profile">
+                <span>Aayansh</span>
+            </div>
+        </header>
+
+        <!-- Dashboard Content Container -->
+        <div class="dashboard-container">
+
+            <!-- 1. DASHBOARD SECTION -->
+            <section id="dashboard" class="content-section active">
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span>Total Users</span>
+                            <div class="card-icon"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <h3 id="stat-users">12,480</h3>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span>Monthly Revenue</span>
+                            <div class="card-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <h3 id="stat-revenue">$48,250</h3>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span>Active Sessions</span>
+                            <div class="card-icon"><i class="fa-solid fa-signal"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <h3 id="stat-sessions">1,320</h3>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span>Conversion Rate</span>
+                            <div class="card-icon"><i class="fa-solid fa-percent"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <h3 id="stat-conversion">3.6%</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h2>Revenue Performance</h2>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h2>Traffic Sources</h2>
+                        <div class="chart-container">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. USERS SECTION -->
+            <section id="users" class="content-section">
+                <div class="card">
+                    <h2 style="margin-bottom: 15px;">User Management</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Vihaan</td>
+                                <td>vihaan@example.com</td>
+                                <td>Admin</td>
+                                <td><span style="color: green;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Aarav</td>
+                                <td>aarav@example.com</td>
+                                <td>Editor</td>
+                                <td><span style="color: green;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Advik</td>
+                                <td>advik@example.com</td>
+                                <td>Subscriber</td>
+                                <td><span style="color: gray;">Inactive</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. FINANCES SECTION -->
+            <section id="finances" class="content-section">
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-header"><span>Current Balance</span></div>
+                        <div class="card-body"><h3>$124,500</h3></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span>Expenses (MTD)</span></div>
+                        <div class="card-body"><h3>$14,200</h3></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 style="margin-bottom: 15px;">Recent Transactions</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Oct 10, 2026</td>
+                                <td>Stripe Payout</td>
+                                <td style="color: green;">+$4,250.00</td>
+                            </tr>
+                            <tr>
+                                <td>Oct 08, 2026</td>
+                                <td>AWS Server Costs</td>
+                                <td style="color: red;">-$450.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. ANALYTICS SECTION -->
+            <section id="analytics" class="content-section">
+                <div class="card">
+                    <h2>Advanced Metrics</h2>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Deep dive conversion statistics, cohort analysis, and bounce rates will appear here.</p>
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS SECTION -->
+            <section id="settings" class="content-section">
+                <div class="card">
+                    <h2>Account Settings</h2>
+                    <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Company Name</label>
+                            <input type="text" value="SaaSMetrics Inc." style="padding: 8px; width: 300px; border: 1px solid var(--border-color); border-radius: 6px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Notification Email</label>
+                            <input type="email" value="admin@saasmetrics.com" style="padding: 8px; width: 300px; border: 1px solid var(--border-color); border-radius: 6px;">
+                        </div>
+                        <button style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; width: fit-content;">Save Changes</button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Line Chart (Revenue Performance)
+        const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctxRevenue, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [12000, 19000, 15000, 25000, 32000, 38000, 48250],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Doughnut Chart (Traffic Sources)
+        const ctxTraffic = document.getElementById('trafficChart').getContext('2d');
+        const trafficChart = new Chart(ctxTraffic, {
+            type: 'doughnut',
+            data: {
+                labels: ['Organic', 'Direct', 'Referral', 'Social'],
+                datasets: [{
+                    data: [55, 20, 15, 10],
+                    backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Navigation Switching Logic
+        const menuItems = document.querySelectorAll('.sidebar-menu li');
+        const contentSections = document.querySelectorAll('.content-section');
+        const pageTitle = document.getElementById('page-title');
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all menu items & sections
+                menuItems.forEach(i => i.classList.remove('active'));
+                contentSections.forEach(s => s.classList.remove('active'));
+
+                // Add active class to clicked menu item
+                item.classList.add('active');
+
+                // Get target section ID
+                const targetId = item.getAttribute('data-target');
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+
+                // Update Header Title based on menu text
+                const text = item.querySelector('a').innerText.trim();
+                pageTitle.innerText = text === "Dashboard" ? "Dashboard Overview" : text + " Management";
+            });
+        });
+
+        // Live stats simulation snippet
+        setInterval(() => {
+            const randomActiveUsers = Math.floor(Math.random() * 50) + 1300;
+            const statSessions = document.getElementById('stat-sessions');
+            if (statSessions) {
+                statSessions.innerText = randomActiveUsers.toLocaleString();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
